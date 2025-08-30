@@ -84,7 +84,7 @@ export function AuthProvider({ children }) {
       
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.massage || error.response?.data?.message || 'Login failed. Please try again.';
+      const message = error.response?.data?.message || 'Login failed. Please try again.';
       showToast(message, 'error');
       throw new Error(message);
     } finally {
@@ -114,7 +114,7 @@ export function AuthProvider({ children }) {
       
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.massage || error.response?.data?.message || 'Signup failed. Please try again.';
+      const message = error.response?.data?.message || 'Signup failed. Please try again.';
       showToast(message, 'error');
       throw new Error(message);
     } finally {

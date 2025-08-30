@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { MessageProvider } from './contexts/MessageContext';
+import { SocketProvider } from './contexts/SocketContext';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ChatPage from './pages/ChatPage';
@@ -52,9 +54,13 @@ function App() {
     <Router>
       <ToastProvider>
         <AuthProvider>
-          <div className="h-screen overflow-hidden">
-            <AppRoutes />
-          </div>
+          <SocketProvider>
+            <MessageProvider>
+              <div className="h-screen overflow-hidden">
+                <AppRoutes />
+              </div>
+            </MessageProvider>
+          </SocketProvider>
         </AuthProvider>
       </ToastProvider>
     </Router>

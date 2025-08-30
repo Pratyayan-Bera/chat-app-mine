@@ -1,8 +1,22 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Settings, LogOut } from 'lucide-react';
 import UserListItem from './UserListItem';
 
 export default function UserListSidebar({ users, activeUser, onUserClick, onSettingsClick, onLogout, currentUser }) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) return users;
+    
+    return users.filter(user => {
+      const name = user.fullName || user.name || '';
+      const email = user.email || '';
+      const query = searchQuery.toLowerCase();
+      
+      return name.toLowerCase().includes(query) || 
+             email.toLowerCase().includes(query);
+    });
+  }, [users, searchQuery]);
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
@@ -33,6 +47,8 @@ export default function UserListSidebar({ users, activeUser, onUserClick, onSett
           <input
             type="text"
             placeholder="Search conversations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -41,14 +57,23 @@ export default function UserListSidebar({ users, activeUser, onUserClick, onSett
       {/* User List */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
-          {users.map((user) => (
-            <UserListItem
-              key={user.id}
-              user={user}
-              onClick={onUserClick}
-              active={activeUser?.id === user.id}
-            />
-          ))}
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
+              <UserListItem
+                key={user._id || user.id}
+                user={user}
+                onClick={onUserClick}
+                active={activeUser?.id === user.id || activeUser?._id === user._id}
+              />
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p className="text-sm">No users found</p>
+              {searchQuery && (
+                <p className="text-xs mt-1">Try a different search term</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -56,7 +81,7 @@ export default function UserListSidebar({ users, activeUser, onUserClick, onSett
       <div className="border-t border-gray-200 p-4">
         <div className="flex items-center">
           <img
-            src={currentUser.avatar || `https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100`}
+            src={currentUser.avatar || `https://res.cloudinary.com/dnkanjycm/image/upload/v1756564418/istockphoto-1337144146-612x612_baqolf.jpg`}
             alt={currentUser.name}
             className="w-10 h-10 rounded-full object-cover"
           />

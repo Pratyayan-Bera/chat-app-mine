@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { X, User, Mail, Lock, Camera } from 'lucide-react';
 import Modal from '../ui/Modal';
+import FileUpload from '../ui/FileUpload';
 import ProfilePictureUploader from './ProfilePictureUploader';
 import UsernameEditor from './UsernameEditor';
 
@@ -11,10 +13,30 @@ export default function ProfileSettingsModal({ isOpen, onClose, user, onUpdatePr
     setIsEditingUsername(false);
   };
 
-  const handleAvatarUpload = (file) => {
-    // In a real app, you'd upload to a server and get back a URL
-    const fakeUrl = URL.createObjectURL(file);
-    onUpdateProfile({ avatar: fakeUrl });
+  const handleAvatarUpload = async (file) => {
+    if (!file) return;
+    
+    try {
+      // Use FormData for Multer upload
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Upload to backend using Multer
+      const uploadResponse = await fetch('/api/file/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (uploadResponse.ok) {
+        const result = await uploadResponse.json();
+        onUpdateProfile({ avatar: result.url });
+      } else {
+        console.error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+    }
   };
 
   return (

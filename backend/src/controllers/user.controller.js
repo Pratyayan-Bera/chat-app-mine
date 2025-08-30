@@ -9,7 +9,7 @@ export const signup = async (req, res) => {
     //checking the fields are not null
     if (!fullName || !email || !password) {
       return res.status(400).json({ 
-        massage: "all fields are required" 
+        message: "all fields are required" 
       });
     }
     //checking if the a user with a same email is already present 
@@ -44,7 +44,7 @@ export const signup = async (req, res) => {
     }
     else{
         return res.status(400).json({
-            massage:"problem occured during User creation"
+            message:"problem occured during User creation"
         })
     }
 
@@ -59,7 +59,7 @@ export const login = async (req, res) => {
     const user = await User.findOne({email});
     if(!user){
         return res.status(400).json({
-            massage:"invalid credentials"
+            message:"invalid credentials"
         })
     }
 
@@ -67,7 +67,7 @@ export const login = async (req, res) => {
     
     if(!passwordCorrect){
         return res.status(400).json({
-            massage:"invalid credentials"
+            message:"invalid credentials"
         })
     }
 
@@ -82,7 +82,7 @@ export const login = async (req, res) => {
   catch(err){
     console.log("error occured during login process",err);
     res.status(500).json({
-        massage:"internal server error"
+        message:"internal server error"
     })
   }
 };
@@ -93,7 +93,7 @@ export const logout = (req, res) => {
     return res.status(200).json({ message:"logged out successfully"})
   } catch(error){
     console.log("Error in logout controller",error);
-    res.status(500).json({ massage:"Internal server error" });
+    res.status(500).json({ message:"Internal server error" });
   }
 };
 
@@ -119,7 +119,7 @@ export const updateUserProfilePicture = async(req , res)=>{
   try{
       if(!newProfilePicture){
         return res.status(400).json({
-            massage:"new profile pic is required"
+            message:"new profile pic is required"
         })
       }
       
@@ -198,9 +198,21 @@ export const getAllUsers = async(req,res)=>{
   const userId = req.user._id;
 
   try{
-      const allUsers = await User.find({ _id:{$ne:userId} });
+      const allUsers = await User.find({ _id:{$ne:userId} }).select('-password');
 
-      res.status(200).json(allUsers);
+      // Format users with proper lastSeen display
+      const formattedUsers = allUsers.map(user => ({
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        isOnline: user.isOnline,
+        lastSeen: user.lastSeen,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      }));
+
+      res.status(200).json(formattedUsers);
   }
   catch(err){
      console.log("unable to fetch all users",err);

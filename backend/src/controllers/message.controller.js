@@ -11,16 +11,16 @@ export const getMessages = async(req,res)=>{
         message:"bad request"
     })}
 
-    const allMessage = await Message.find({
+    const allMessages = await Message.find({
         senderId:senderId,
         receiverId:receiverId
     })
 
-    return res.status(200).json(allMessage);
+    return res.status(200).json(allMessages);
 
   }
   catch(err){
-    console.log("some error occured while fetchin all messages",err);
+    console.log("some error occurred while fetching all messages",err);
     return res.status(500).json({
         message:"internal server error"
     })
@@ -32,7 +32,7 @@ export const sendMessage = async(req,res)=>{
 
     try{
         if(!senderId || !receiverId){
-            return res.status(200).json({
+            return res.status(400).json({
                 message:"bad request"
             })
         }

@@ -4,23 +4,29 @@ import UserListSidebar from '../components/user/UserListSidebar';
 import ChatWindow from '../components/chat/ChatWindow';
 import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
 import { useAuth } from '../contexts/AuthContext';
+import { useMessage } from '../contexts/MessageContext';
 import { MessageCircle } from 'lucide-react';
 
 export default function ChatPage({ currentUser, onUpdateProfile }) {
-  const { logout } = useAuth();
-  const { getAllUsers } = useAuth();
+  const { logout, getAllUsers } = useAuth();
+  const { getMessages, sendMessage, getCachedMessages, loading: messageLoading, onlineUsers, messages: contextMessages } = useMessage();
   const [activeUser, setActiveUser] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
 
-  // Fetch users from backend
+  // Fetch users from backend and update online status
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const fetchedUsers = await getAllUsers();
-        setUsers(fetchedUsers);
+        // Update users with online status
+        const usersWithStatus = fetchedUsers.map(user => ({
+          ...user,
+          online: onlineUsers.includes(user.id)
+        }));
+        setUsers(usersWithStatus);
       } catch (error) {
         console.error('Failed to fetch users:', error);
       } finally {
@@ -29,65 +35,42 @@ export default function ChatPage({ currentUser, onUpdateProfile }) {
     };
 
     fetchUsers();
-  }, [getAllUsers]);
+  }, [getAllUsers, onlineUsers]);
 
-  // Mock messages data
-  const mockMessages = {
-    '1': [
-      {
-        id: '1',
-        content: 'Hey! How are you doing?',
-        sender: { id: '1', name: 'Alice Johnson', avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100' },
-        timestamp: '10:30 AM',
-        isOwn: false,
-      },
-      {
-        id: '2',
-        content: 'I\'m doing great! Thanks for asking. How about you?',
-        sender: { id: currentUser.id, name: currentUser.name, avatar: currentUser.avatar },
-        timestamp: '10:32 AM',
-        isOwn: true,
-      },
-      {
-        id: '3',
-        content: 'That\'s wonderful to hear! I\'m doing well too. Working on some exciting projects.',
-        sender: { id: '1', name: 'Alice Johnson', avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100' },
-        timestamp: '10:35 AM',
-        isOwn: false,
-      },
-    ],
-    '2': [
-      {
-        id: '4',
-        content: 'Good morning!',
-        sender: { id: '2', name: 'Bob Smith', avatar: 'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=100' },
-        timestamp: '9:00 AM',
-        isOwn: false,
-      },
-    ],
-  };
+  // Update messages when context messages change for active user
+  useEffect(() => {
+    if (activeUser && contextMessages[activeUser.id]) {
+      setMessages(contextMessages[activeUser.id]);
+    }
+  }, [contextMessages, activeUser]);
 
-  const handleUserClick = (user) => {
+  const handleUserClick = async (user) => {
     setActiveUser(user);
-    setMessages(mockMessages[user.id] || []);
+    
+    // First, show cached messages immediately for better UX
+    const cachedMessages = getCachedMessages(user.id);
+    setMessages(cachedMessages);
+    
+    // Then fetch fresh messages from backend
+    try {
+      const freshMessages = await getMessages(user.id);
+      setMessages(freshMessages);
+    } catch (error) {
+      console.error('Failed to load messages for user:', user.id, error);
+    }
   };
 
-  const handleSendMessage = (content) => {
-    if (!activeUser) return;
+  const handleSendMessage = async (content, file = null) => {
+    if (!activeUser || (!content.trim() && !file)) return;
 
-    const newMessage = {
-      id: Date.now().toString(),
-      content,
-      sender: {
-        id: currentUser.id,
-        name: currentUser.name,
-        avatar: currentUser.avatar,
-      },
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isOwn: true,
-    };
-
-    setMessages(prev => [...prev, newMessage]);
+    try {
+      const newMessage = await sendMessage(activeUser.id, content, file);
+      if (newMessage) {
+        setMessages(prev => [...prev, newMessage]);
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
   };
 
   return (
