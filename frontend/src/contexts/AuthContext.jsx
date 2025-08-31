@@ -5,7 +5,7 @@ import { useToast } from './ToastContext';
 const AuthContext = createContext(undefined);
 
 // Configure axios defaults
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://chill-chat-server.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://chill-chat-server.onrender.com/api';
 axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.withCredentials = true; // Important for cookie-based auth
 
