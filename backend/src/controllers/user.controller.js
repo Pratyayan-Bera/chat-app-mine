@@ -34,12 +34,13 @@ export const signup = async (req, res) => {
     })
 
     if(newUser){
-        generateJWT(newUser._id,res)
+        const token = generateJWT(newUser._id,res)
         res.status(201).json({
             id:newUser._id,
             fullName:newUser.fullName,
             email:newUser.email,
-            profilePicture: newUser.profilePicture
+            profilePicture: newUser.profilePicture,
+            token:token
         });
     }
     else{
@@ -71,12 +72,13 @@ export const login = async (req, res) => {
         })
     }
 
-    generateJWT(user._id,res);
+    const token = generateJWT(user._id,res);
     res.status(200).json({
         id:user._id,
         fullName:user.fullName,
         email:user.email,
-        profilePicture:user.profilePicture
+        profilePicture:user.profilePicture,
+        token:token
     })
   }
   catch(err){

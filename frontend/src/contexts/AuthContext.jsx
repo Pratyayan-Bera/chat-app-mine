@@ -9,6 +9,21 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://chill-chat-se
 axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.withCredentials = true; // Important for cookie-based auth
 
+// Add request interceptor to include token in headers
+axios.interceptors.request.use(
+  (config) => {
+    const userData = localStorage.getItem('chatapp_user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user.token) {
+        config.headers.Authorization = `Bearer ${user.token}`;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Add response interceptor to handle token expiration
 axios.interceptors.response.use(
   (response) => response,
@@ -75,7 +90,8 @@ export function AuthProvider({ children }) {
         id: response.data.id,
         name: response.data.fullName,
         email: response.data.email,
-        avatar: response.data.profilePicture
+        avatar: response.data.profilePicture,
+        token: response.data.token
       };
       
       setUser(userData);
@@ -105,7 +121,8 @@ export function AuthProvider({ children }) {
         id: response.data.id,
         name: response.data.fullName,
         email: response.data.email,
-        avatar: response.data.profilePicture
+        avatar: response.data.profilePicture,
+        token: response.data.token
       };
       
       setUser(userData);
