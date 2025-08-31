@@ -15,6 +15,7 @@ export default defineConfig({
       },
     },
   },
+  envDir: '.',
   define: {
     global: 'globalThis',
     'process.env': '{}',
