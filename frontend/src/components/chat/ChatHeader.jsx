@@ -1,6 +1,7 @@
 import React from 'react';
 import { Phone, Video, MoreVertical } from 'lucide-react';
 import UserAvatar from '../user/UserAvatar';
+import CallButtons from '../call/CallButtons';
 
 export default function ChatHeader({ user }) {
   return (
@@ -22,12 +23,7 @@ export default function ChatHeader({ user }) {
         </div>
         
         <div className="flex items-center space-x-2">
-          <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
-            <Phone className="w-5 h-5" />
-          </button>
-          <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
-            <Video className="w-5 h-5" />
-          </button>
+          <CallButtons userId={user._id || user.id} userName={user.fullName || user.name} />
           <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
             <MoreVertical className="w-5 h-5" />
           </button>

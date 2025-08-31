@@ -72,6 +72,43 @@ io.on('connection', (socket) => {
     console.log(`Message sent from ${senderId} to ${receiverId}`);
   });
 
+  // WebRTC Call Signaling
+  socket.on('call-offer', ({ to, from, signal, type }) => {
+    const receiverSocketId = onlineUsers.get(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('call-offer', {
+        from,
+        signal,
+        type,
+        callerInfo: {
+          name: 'User', // You can enhance this with actual user data
+          avatar: null
+        }
+      });
+    }
+  });
+
+  socket.on('call-answer', ({ to, from, signal }) => {
+    const callerSocketId = onlineUsers.get(to);
+    if (callerSocketId) {
+      io.to(callerSocketId).emit('call-answer', { signal });
+    }
+  });
+
+  socket.on('call-reject', ({ to, from }) => {
+    const callerSocketId = onlineUsers.get(to);
+    if (callerSocketId) {
+      io.to(callerSocketId).emit('call-reject');
+    }
+  });
+
+  socket.on('call-end', ({ to, from }) => {
+    const otherUserSocketId = onlineUsers.get(to);
+    if (otherUserSocketId) {
+      io.to(otherUserSocketId).emit('call-end');
+    }
+  });
+
   // Handle user disconnection
   socket.on('disconnect', () => {
     if (socket.userId) {

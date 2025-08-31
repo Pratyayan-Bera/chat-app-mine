@@ -3,6 +3,9 @@ import { useEffect } from 'react';
 import UserListSidebar from '../components/user/UserListSidebar';
 import ChatWindow from '../components/chat/ChatWindow';
 import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
+import IncomingCallModal from '../components/call/IncomingCallModal';
+import VideoCallWindow from '../components/call/VideoCallWindow';
+import AudioCallWindow from '../components/call/AudioCallWindow';
 import { useAuth } from '../contexts/AuthContext';
 import { useMessage } from '../contexts/MessageContext';
 import { MessageCircle } from 'lucide-react';
@@ -110,6 +113,11 @@ export default function ChatPage({ currentUser, onUpdateProfile }) {
         user={{ ...currentUser, email: currentUser.email || 'user@example.com' }}
         onUpdateProfile={onUpdateProfile}
       />
+
+      {/* Call Components */}
+      <IncomingCallModal />
+      <VideoCallWindow />
+      <AudioCallWindow />
     </div>
   );
 }

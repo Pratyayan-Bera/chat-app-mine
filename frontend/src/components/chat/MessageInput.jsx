@@ -2,11 +2,13 @@ import React, { useState, useRef } from 'react';
 import { Send, Paperclip, Smile, X } from 'lucide-react';
 import Button from '../ui/Button';
 import FileUpload from '../ui/FileUpload';
+import EmojiPicker from 'emoji-picker-react';
 
 export default function MessageInput({ onSendMessage, disabled = false }) {
   const [message, setMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [showFileUpload, setShowFileUpload] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleSubmit = (e) => {
@@ -30,6 +32,41 @@ export default function MessageInput({ onSendMessage, disabled = false }) {
     setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleEmojiClick = (emojiData) => {
+    setMessage(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const handleKeyDown = (e) => {
+    // Common emoji shortcuts
+    const emojiShortcuts = {
+      ':)': '😊',
+      ':D': '😃',
+      ':(': '😢',
+      ':P': '😛',
+      ';)': '😉',
+      '<3': '❤️',
+      ':o': '😮',
+      ':|': '😐'
+    };
+
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+      return;
+    }
+
+    // Check for emoji shortcuts
+    const currentText = message + e.key;
+    for (const [shortcut, emoji] of Object.entries(emojiShortcuts)) {
+      if (currentText.endsWith(shortcut)) {
+        e.preventDefault();
+        setMessage(prev => prev.slice(0, -shortcut.length + 1) + emoji);
+        return;
+      }
     }
   };
 
@@ -100,16 +137,32 @@ export default function MessageInput({ onSendMessage, disabled = false }) {
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder={selectedFile ? "Add a caption..." : "Type a message..."}
             disabled={disabled}
             className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
           />
           <button
             type="button"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded"
           >
             <Smile className="w-5 h-5" />
           </button>
+          
+          {/* Emoji Picker */}
+          {showEmojiPicker && (
+            <div className="absolute bottom-full right-0 mb-2 z-50">
+              <EmojiPicker
+                onEmojiClick={handleEmojiClick}
+                width={300}
+                height={400}
+                previewConfig={{
+                  showPreview: false
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <Button

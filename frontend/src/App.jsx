@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ToastProvider } from './contexts/ToastContext';
-import { MessageProvider } from './contexts/MessageContext';
 import { SocketProvider } from './contexts/SocketContext';
+import { MessageProvider } from './contexts/MessageContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { CallProvider } from './contexts/CallContext';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ChatPage from './pages/ChatPage';
@@ -55,11 +56,13 @@ function App() {
       <ToastProvider>
         <AuthProvider>
           <SocketProvider>
-            <MessageProvider>
-              <div className="h-screen overflow-hidden">
-                <AppRoutes />
-              </div>
-            </MessageProvider>
+            <CallProvider>
+              <MessageProvider>
+                <div className="h-screen overflow-hidden">
+                  <AppRoutes />
+                </div>
+              </MessageProvider>
+            </CallProvider>
           </SocketProvider>
         </AuthProvider>
       </ToastProvider>

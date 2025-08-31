@@ -15,4 +15,19 @@ export default defineConfig({
       },
     },
   },
+  define: {
+    global: 'globalThis',
+    'process.env': {},
+    'process.nextTick': '((fn, ...args) => setTimeout(() => fn(...args), 0))',
+    'process.browser': 'true',
+  },
+  resolve: {
+    alias: {
+      events: 'events',
+      util: 'util',
+      buffer: 'buffer',
+      process: 'process/browser',
+      stream: 'readable-stream',
+    },
+  },
 });
