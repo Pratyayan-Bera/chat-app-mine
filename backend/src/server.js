@@ -25,7 +25,7 @@ app.use(cookieParser());
 
 // CORS middleware
 app.use(cors({
-  origin: 'https://chillchatt.netlify.app/',  // frontend URL
+  origin: 'https://chillchatt.netlify.app',  // frontend URL
   credentials: true                // allow cookies to be sent
 }));
 
