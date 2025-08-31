@@ -21,7 +21,7 @@ export function SocketProvider({ children }) {
   useEffect(() => {
     if (user) {
       // Create socket connection
-      const newSocket = io('http://localhost:3000', {
+      const newSocket = io('https://chill-chat-server.onrender.com', {
         withCredentials: true
       });
 
