@@ -15,7 +15,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://chillchatt.netlify.app/",
+    origin: "https://chillchatt.netlify.app",
     credentials: true
   }
 });
