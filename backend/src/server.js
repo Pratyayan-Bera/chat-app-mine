@@ -15,7 +15,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://chillchatt.netlify.app",
+    origin: ["https://chillchatt.netlify.app", "http://localhost:5173", "http://localhost:3000"],
     credentials: true
   }
 });
@@ -25,7 +25,7 @@ app.use(cookieParser());
 
 // CORS middleware
 app.use(cors({
-  origin: 'https://chillchatt.netlify.app',  // frontend URL
+  origin: ['https://chillchatt.netlify.app', 'http://localhost:5173', 'http://localhost:3000'],  // frontend URL
   credentials: true                // allow cookies to be sent
 }));
 
