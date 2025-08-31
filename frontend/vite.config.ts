@@ -17,8 +17,7 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis',
-    'process.env': {},
-    'process.nextTick': '((fn, ...args) => setTimeout(() => fn(...args), 0))',
+    'process.env': '{}',
     'process.browser': 'true',
   },
   resolve: {
@@ -29,5 +28,15 @@ export default defineConfig({
       process: 'process/browser',
       stream: 'readable-stream',
     },
+  },
+  build: {
+    rollupOptions: {
+      external: [],
+      output: {
+        globals: {
+          'process': 'process'
+        }
+      }
+    }
   },
 });
