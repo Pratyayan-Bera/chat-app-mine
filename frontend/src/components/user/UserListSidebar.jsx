@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, Settings, LogOut } from 'lucide-react';
 import UserListItem from './UserListItem';
 
-export default function UserListSidebar({ users, activeUser, onUserClick, onSettingsClick, onLogout, currentUser }) {
+export default function UserListSidebar({ users, activeUser, onUserClick, onSettingsClick, onLogout, currentUser, isMobile = false }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredUsers = useMemo(() => {
@@ -18,7 +18,7 @@ export default function UserListSidebar({ users, activeUser, onUserClick, onSett
     });
   }, [users, searchQuery]);
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
+    <div className={`${isMobile ? 'w-full' : 'w-80'} bg-white border-r border-gray-200 flex flex-col h-full`}>
       {/* Header */}
       <div className="border-b border-gray-200 p-4">
         <div className="flex items-center justify-between mb-4">
