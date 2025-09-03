@@ -8,6 +8,7 @@ import AudioCallWindow from '../components/call/AudioCallWindow';
 import { useAuth } from '../contexts/AuthContext';
 import { useMessage } from '../contexts/MessageContext';
 import { MessageCircle, ArrowLeft } from 'lucide-react';
+import CallButtons from '../components/call/CallButtons';
 
 export default function ChatPage({ currentUser, onUpdateProfile }) {
   const { logout, getAllUsers } = useAuth();
@@ -123,24 +124,32 @@ export default function ChatPage({ currentUser, onUpdateProfile }) {
           {showChatOnMobile && activeUser && (
             <div className="w-full flex flex-col">
               {/* Mobile Chat Header with Back Button */}
-              <div className="bg-white border-b border-gray-200 p-4 flex items-center">
-                <button
-                  onClick={handleBackToUserList}
-                  className="mr-3 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <img
-                  src={activeUser.avatar || `https://res.cloudinary.com/dnkanjycm/image/upload/v1756564418/istockphoto-1337144146-612x612_baqolf.jpg`}
-                  alt={activeUser.name || activeUser.fullName}
-                  className="w-10 h-10 rounded-full object-cover mr-3"
-                />
-                <div>
-                  <h3 className="font-semibold text-gray-900">{activeUser.name || activeUser.fullName}</h3>
-                  <p className="text-sm text-gray-500">
-                    {activeUser.online ? 'Online' : 'Offline'}
-                  </p>
+              <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+                <div className="flex items-center">
+                  <button
+                    onClick={handleBackToUserList}
+                    className="mr-3 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <img
+                    src={activeUser.avatar || `https://res.cloudinary.com/dnkanjycm/image/upload/v1756564418/istockphoto-1337144146-612x612_baqolf.jpg`}
+                    alt={activeUser.name || activeUser.fullName}
+                    className="w-10 h-10 rounded-full object-cover mr-3"
+                  />
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{activeUser.name || activeUser.fullName}</h3>
+                    <p className="text-sm text-gray-500">
+                      {activeUser.online ? 'Online' : 'Offline'}
+                    </p>
+                  </div>
                 </div>
+                
+                {/* Call Buttons for Mobile */}
+                <CallButtons 
+                  userId={activeUser._id || activeUser.id} 
+                  userName={activeUser.fullName || activeUser.name} 
+                />
               </div>
               <ChatWindow
                 user={activeUser}

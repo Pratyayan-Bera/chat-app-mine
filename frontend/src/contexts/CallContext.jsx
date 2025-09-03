@@ -61,10 +61,20 @@ export const CallProvider = ({ children }) => {
       });
       
       newPeer.on('stream', (remoteStream) => {
+        console.log('Caller received remote stream:', remoteStream);
         setRemoteStream(remoteStream);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
         }
+      });
+      
+      newPeer.on('connect', () => {
+        console.log('Caller peer connected successfully');
+        setCallState('active');
+      });
+      
+      newPeer.on('error', (err) => {
+        console.error('Caller peer connection error:', err);
       });
       
       setPeer(newPeer);
@@ -84,7 +94,6 @@ export const CallProvider = ({ children }) => {
       });
       
       setLocalStream(stream);
-      setCallState('active');
       
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
@@ -105,11 +114,27 @@ export const CallProvider = ({ children }) => {
       });
       
       newPeer.on('stream', (remoteStream) => {
+        console.log('Received remote stream:', remoteStream);
         setRemoteStream(remoteStream);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
         }
       });
+      
+      newPeer.on('connect', () => {
+        console.log('Peer connected successfully');
+        setCallState('active');
+      });
+      
+      newPeer.on('error', (err) => {
+        console.error('Peer connection error:', err);
+      });
+      
+      // Signal with the stored incoming call data
+      if (window.incomingCallSignal) {
+        newPeer.signal(window.incomingCallSignal);
+        delete window.incomingCallSignal;
+      }
       
       setPeer(newPeer);
       
@@ -172,6 +197,13 @@ export const CallProvider = ({ children }) => {
 
   // Reset call state
   const resetCallState = () => {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+    if (peer && peer.destroy) {
+      peer.destroy();
+    }
+    
     setCallState('idle');
     setCallType(null);
     setCaller(null);
@@ -179,6 +211,17 @@ export const CallProvider = ({ children }) => {
     setLocalStream(null);
     setRemoteStream(null);
     setPeer(null);
+    
+    // Clear video elements
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+    
+    // Clean up stored signal
+    delete window.incomingCallSignal;
   };
 
   // Socket event listeners
@@ -190,25 +233,31 @@ export const CallProvider = ({ children }) => {
       setCallType(type);
       setCallState('receiving');
       
-      // Store the signal for when user accepts
-      setPeer(prevPeer => {
-        if (prevPeer) prevPeer.destroy();
-        return { signal, needsAnswer: true };
-      });
+      // Store the incoming signal to use when call is accepted
+      window.incomingCallSignal = signal;
     });
 
     socket.on('call-answer', ({ signal }) => {
-      if (peer && peer.signal) {
+      if (peer && typeof peer.signal === 'function') {
         peer.signal(signal);
         setCallState('active');
       }
     });
 
     socket.on('call-reject', () => {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
       resetCallState();
     });
 
     socket.on('call-end', () => {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      if (peer && peer.destroy) {
+        peer.destroy();
+      }
       resetCallState();
     });
 
@@ -218,36 +267,19 @@ export const CallProvider = ({ children }) => {
       socket.off('call-reject');
       socket.off('call-end');
     };
-  }, [socket, peer]);
+  }, [socket, peer, localStream]);
 
-  // Handle peer signaling for incoming calls
+  // Cleanup effect
   useEffect(() => {
-    if (peer && peer.needsAnswer && callState === 'active') {
-      const newPeer = new Peer({
-        initiator: false,
-        trickle: false,
-        stream: localStream
-      });
-      
-      newPeer.on('signal', (data) => {
-        socket.emit('call-answer', {
-          to: caller.id,
-          from: user.id,
-          signal: data
-        });
-      });
-      
-      newPeer.on('stream', (remoteStream) => {
-        setRemoteStream(remoteStream);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = remoteStream;
-        }
-      });
-      
-      newPeer.signal(peer.signal);
-      setPeer(newPeer);
-    }
-  }, [peer, callState, localStream, caller, socket, user]);
+    return () => {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      if (peer && peer.destroy) {
+        peer.destroy();
+      }
+    };
+  }, []);
 
   const value = {
     callState,
