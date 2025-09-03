@@ -17,7 +17,7 @@ export const CallProvider = ({ children }) => {
   const { socket } = useSocket();
   const { user } = useAuth();
   
-  const [callState, setCallState] = useState('idle'); // idle, calling, receiving, active
+  const [callState, setCallState] = useState('idle'); // idle, calling, receiving, connecting, active
   const [callType, setCallType] = useState(null); // audio, video
   const [caller, setCaller] = useState(null);
   const [receiver, setReceiver] = useState(null);
@@ -48,7 +48,13 @@ export const CallProvider = ({ children }) => {
       const newPeer = new Peer({
         initiator: true,
         trickle: false,
-        stream: stream
+        stream: stream,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
+        }
       });
       
       newPeer.on('signal', (data) => {
@@ -73,6 +79,11 @@ export const CallProvider = ({ children }) => {
         setCallState('active');
       });
       
+      newPeer.on('close', () => {
+        console.log('Caller peer closed');
+        resetCallState();
+      });
+      
       newPeer.on('error', (err) => {
         console.error('Caller peer connection error:', err);
       });
@@ -87,6 +98,14 @@ export const CallProvider = ({ children }) => {
 
   // Accept incoming call
   const acceptCall = async () => {
+    // Prevent multiple calls
+    if (callState !== 'receiving') {
+      console.log('Call not in receiving state, ignoring accept');
+      return;
+    }
+    
+    setCallState('connecting');
+    
     try {
       console.log('Accepting call, getting user media...');
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -105,7 +124,13 @@ export const CallProvider = ({ children }) => {
       const newPeer = new Peer({
         initiator: false,
         trickle: false,
-        stream: stream
+        stream: stream,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
+        }
       });
       
       newPeer.on('signal', (data) => {
@@ -128,6 +153,11 @@ export const CallProvider = ({ children }) => {
       newPeer.on('connect', () => {
         console.log('Receiver peer connected');
         setCallState('active');
+      });
+      
+      newPeer.on('close', () => {
+        console.log('Receiver peer closed');
+        resetCallState();
       });
       
       newPeer.on('error', (err) => {
