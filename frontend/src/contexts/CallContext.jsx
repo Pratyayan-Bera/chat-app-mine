@@ -88,17 +88,20 @@ export const CallProvider = ({ children }) => {
   // Accept incoming call
   const acceptCall = async () => {
     try {
+      console.log('Accepting call, getting user media...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: callType === 'video',
         audio: true
       });
       
+      console.log('Got user media stream:', stream);
       setLocalStream(stream);
       
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
       }
       
+      // Create new peer for receiver
       const newPeer = new Peer({
         initiator: false,
         trickle: false,
@@ -106,6 +109,7 @@ export const CallProvider = ({ children }) => {
       });
       
       newPeer.on('signal', (data) => {
+        console.log('Sending call answer');
         socket.emit('call-answer', {
           to: caller.id,
           from: user.id,
@@ -114,7 +118,7 @@ export const CallProvider = ({ children }) => {
       });
       
       newPeer.on('stream', (remoteStream) => {
-        console.log('Received remote stream:', remoteStream);
+        console.log('Receiver got remote stream:', remoteStream);
         setRemoteStream(remoteStream);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
@@ -122,16 +126,17 @@ export const CallProvider = ({ children }) => {
       });
       
       newPeer.on('connect', () => {
-        console.log('Peer connected successfully');
+        console.log('Receiver peer connected');
         setCallState('active');
       });
       
       newPeer.on('error', (err) => {
-        console.error('Peer connection error:', err);
+        console.error('Receiver peer error:', err);
       });
       
       // Signal with the stored incoming call data
       if (window.incomingCallSignal) {
+        console.log('Signaling with incoming call data');
         newPeer.signal(window.incomingCallSignal);
         delete window.incomingCallSignal;
       }
@@ -229,6 +234,7 @@ export const CallProvider = ({ children }) => {
     if (!socket) return;
 
     socket.on('call-offer', ({ from, signal, type, callerInfo }) => {
+      console.log('Received call offer from:', from, 'type:', type);
       setCaller({ id: from, ...callerInfo });
       setCallType(type);
       setCallState('receiving');
@@ -238,9 +244,10 @@ export const CallProvider = ({ children }) => {
     });
 
     socket.on('call-answer', ({ signal }) => {
+      console.log('Received call answer');
       if (peer && typeof peer.signal === 'function') {
+        console.log('Signaling caller peer with answer');
         peer.signal(signal);
-        setCallState('active');
       }
     });
 
